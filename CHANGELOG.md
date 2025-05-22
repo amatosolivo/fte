@@ -1,5 +1,16 @@
 # Changelog
 
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## 1.0.0 (2025-05-22)
+
+
+### ✨ Features
+
+* initial Next.js project with Vite, SemVer, RQID, and auto-changelog ([429b338](https://github.com/amatosolivo/fte/commit/429b338eb71e8810cb36af1aeb3ce5784c449493))
+
+# Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
