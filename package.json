@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "echo \"Sin pruebas definidas aún\" && exit 0",
     "lint": "next lint",
     "build:vite": "vite build",
     "preview": "vite preview",
@@ -14,8 +15,7 @@
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "echo 'Version:' && npm pkg get version",
-    "prepare": "husky"
+    "version": "echo 'Version:' && npm pkg get version"
   },
   "dependencies": {
     "next": "15.3.2",
