@@ -8,8 +8,6 @@
     "start": "next start",
     "test": "echo \"Sin pruebas definidas aún\" && exit 0",
     "lint": "next lint",
-    "build:vite": "vite build",
-    "preview": "vite preview",
     "release": "standard-version",
     "release:patch": "standard-version --release-as patch",
     "release:minor": "standard-version --release-as minor",
@@ -30,7 +28,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4.4.1",
     "conventional-changelog-angular": "^8.0.0",
     "conventional-changelog-cli": "^5.0.0",
     "eslint": "^9",
@@ -38,7 +35,6 @@
     "husky": "^9.1.7",
     "standard-version": "^9.5.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vite": "^6.3.5"
+    "typescript": "^5"
   }
 }
