@@ -5,7 +5,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
         <h1 className="text-4xl font-bold text-center mb-8">
-          Next.js + Vite + SemVer + RQID
+          Next.js + SemVer + RQID
         </h1>
         
         <div className="mb-8">
@@ -17,7 +17,6 @@ export default function Home() {
             <h2 className="text-xl font-semibold mb-4">🚀 Features</h2>
             <ul className="space-y-2">
               <li>✅ Next.js 14+ with App Router</li>
-              <li>✅ Vite integration</li>
               <li>✅ Automatic SemVer</li>
               <li>✅ RQID tracking</li>
               <li>✅ Auto-generated CHANGELOG</li>

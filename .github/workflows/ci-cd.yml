@@ -1,4 +1,4 @@
-name: CI/CD with Next.js + Vite + SemVer + RQID + CHANGELOG
+name: CI/CD with Next.js + SemVer + RQID + CHANGELOG
 
 on:
   push:
@@ -83,13 +83,6 @@ jobs:
         echo "[RQID-$RQID] Building Next.js application..."
         npm run build
 
-    - name: Build with Vite (additional)
-      env:
-        RQID: ${{ env.RQID }}
-        BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
-      run: |
-        echo "[RQID-$RQID] Building with Vite..."
-        npm run build:vite
 
     - name: Create build artifacts
       id: artifact
@@ -102,7 +95,6 @@ jobs:
         
         # Copy build outputs
         cp -r .next artifacts/nextjs-build/ 2>/dev/null || true
-        cp -r dist artifacts/vite-build/ 2>/dev/null || true
         cp -r out artifacts/nextjs-export/ 2>/dev/null || true
         
         # Create build info
@@ -194,7 +186,6 @@ jobs:
           
           ### 📦 Artifacts
           - Next.js build included
-          - Vite build included
           - Full source code
           
           ### 📝 Changes

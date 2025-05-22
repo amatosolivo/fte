@@ -28,7 +28,7 @@ info() {
 echo -e "${BLUE}"
 echo "╔═══════════════════════════════════════════════════════════════╗"
 echo "║                    RELEASE AUTOMATION                         ║"
-echo "║              Next.js + Vite + SemVer + RQID                  ║"
+echo "║              Next.js + SemVer + RQID                          ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 

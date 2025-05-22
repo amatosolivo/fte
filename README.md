@@ -1,11 +1,10 @@
-# Next.js + Vite + SemVer + RQID Project
+# Next.js + SemVer + RQID Project
 
-A modern Next.js application with Vite integration, automatic semantic versioning, RQID tracking, and automated changelog generation.
+A modern Next.js application with automatic semantic versioning, RQID tracking, and automated changelog generation.
 
 ## 🚀 Features
 
 - **Next.js 14+** with App Router and TypeScript
-- **Vite Integration** for enhanced development experience
 - **Automatic SemVer** versioning with standard-version
 - **RQID Tracking** throughout CI/CD pipeline
 - **Auto-generated CHANGELOG** with conventional commits
@@ -90,7 +89,7 @@ Every build and deployment is tracked with a unique RQID that flows through:
 The CI/CD pipeline includes:
 
 1. **Lint & Test**: Code quality checks
-2. **Build**: Next.js and Vite builds with RQID
+2. **Build**: Next.js with RQID
 3. **Release**: Automated releases on version tags
 4. **Preview**: PR preview builds
 
@@ -105,14 +104,12 @@ The CI/CD pipeline includes:
 ├── .husky/                  # Git hooks
 ├── CHANGELOG.md            # Auto-generated changelog
 ├── release.sh              # Release automation script
-└── vite.config.js          # Vite configuration
 ```
 
 ## 🔧 Configuration Files
 
 - `.versionrc.json`: Standard-version configuration
 - `.commitlintrc.json`: Commit message linting
-- `vite.config.js`: Vite build configuration
 - `.github/workflows/ci-cd.yml`: CI/CD pipeline
 
 ## 📈 Versioning Strategy
