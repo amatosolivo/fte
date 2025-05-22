@@ -1,0 +1,231 @@
+name: CI/CD with Next.js + SemVer + RQID + CHANGELOG
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  RQID: ${{ github.run_id }}
+  BUILD_NUMBER: ${{ github.run_number }}
+  NODE_VERSION: '18'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        echo "[RQID-$RQID] Installing dependencies..."
+        npm ci
+
+    - name: Lint
+      run: |
+        echo "[RQID-$RQID] Running linter..."
+        npm run lint
+
+    - name: Type check
+      run: |
+        echo "[RQID-$RQID] Running TypeScript check..."
+        npx tsc --noEmit
+
+  build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.version.outputs.current }}
+      artifact-name: ${{ steps.artifact.outputs.name }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        echo "[RQID-$RQID] Installing dependencies..."
+        npm ci
+
+    - name: Get current version
+      id: version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "current=$VERSION" >> $GITHUB_OUTPUT
+        echo "[RQID-$RQID] Current version: $VERSION"
+
+    - name: Build Next.js
+      env:
+        RQID: ${{ env.RQID }}
+        BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
+      run: |
+        echo "[RQID-$RQID] Building Next.js application..."
+        npm run build
+
+
+    - name: Create build artifacts
+      id: artifact
+      run: |
+        ARTIFACT_NAME="nextjs-build-v${{ steps.version.outputs.current }}-${RQID}"
+        echo "name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+        echo "[RQID-$RQID] Creating artifact: $ARTIFACT_NAME"
+        
+        mkdir -p artifacts
+        
+        # Copy build outputs
+        cp -r .next artifacts/nextjs-build/ 2>/dev/null || true
+        cp -r out artifacts/nextjs-export/ 2>/dev/null || true
+        
+        # Create build info
+        cat > artifacts/build-info.json << EOL
+        {
+          "rqid": "$RQID",
+          "buildNumber": "$BUILD_NUMBER",
+          "version": "${{ steps.version.outputs.current }}",
+          "commit": "${{ github.sha }}",
+          "branch": "${{ github.ref_name }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "nodeVersion": "${{ env.NODE_VERSION }}",
+          "environment": "production"
+        }
+        EOL
+        
+        # Create deployment info
+        echo "# Build Information" > artifacts/BUILD_INFO.md
+        echo "" >> artifacts/BUILD_INFO.md
+        echo "- **RQID**: \`$RQID\`" >> artifacts/BUILD_INFO.md
+        echo "- **Build Number**: #$BUILD_NUMBER" >> artifacts/BUILD_INFO.md
+        echo "- **Version**: v${{ steps.version.outputs.current }}" >> artifacts/BUILD_INFO.md
+        echo "- **Commit**: \`${{ github.sha }}\`" >> artifacts/BUILD_INFO.md
+        echo "- **Branch**: \`${{ github.ref_name }}\`" >> artifacts/BUILD_INFO.md
+        echo "- **Timestamp**: $(date -u)" >> artifacts/BUILD_INFO.md
+        echo "- **Node.js**: v${{ env.NODE_VERSION }}" >> artifacts/BUILD_INFO.md
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.artifact.outputs.name }}
+        path: artifacts/
+        retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint-and-test, build]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Extract version from tag
+      id: tag_version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/v}
+        echo "version=$TAG" >> $GITHUB_OUTPUT
+        echo "[RQID-$RQID] Release version: $TAG"
+
+    - name: Generate changelog for release
+      run: |
+        echo "[RQID-$RQID] Generating changelog..."
+        npm run changelog
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ needs.build.outputs.artifact-name }}
+        path: ./release-artifacts
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.tag_version.outputs.version }}
+        release_name: 🚀 Release v${{ steps.tag_version.outputs.version }}
+        body: |
+          ## 🚀 Release v${{ steps.tag_version.outputs.version }}
+          
+          ### 📋 Build Information
+          - **RQID**: `${{ env.RQID }}`
+          - **Build Number**: #${{ env.BUILD_NUMBER }}
+          - **Commit**: `${{ github.sha }}`
+          - **Timestamp**: $(date -u)
+          - **Node.js**: v${{ env.NODE_VERSION }}
+          
+          ### 📦 Artifacts
+          - Next.js build included
+          - Full source code
+          
+          ### 📝 Changes
+          See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
+          
+          ---
+          
+          *This release was automatically generated with SemVer + RQID tracking*
+        draft: false
+        prerelease: false
+
+  deploy-preview:
+    if: github.event_name == 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ needs.build.outputs.artifact-name }}
+        path: ./preview
+
+    - name: Comment PR with preview info
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🚀 Preview Build Ready
+            
+            **Build Information:**
+            - RQID: \`${{ env.RQID }}\`
+            - Version: v${{ needs.build.outputs.version }}
+            - Build Number: #${{ env.BUILD_NUMBER }}
+            
+            **Artifacts:** Available for download in Actions tab
+            
+            ---
+            *Generated automatically with RQID tracking*`
+          })
